@@ -1,11 +1,20 @@
+from django.core.mail import send_mail
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView
 
+from .forms import EmailPostForm
 from .models import Post
 
 
 # Create your views here.
+
+class PostListView(ListView):
+	queryset = Post.published.all()
+	context_object_name = 'posts'
+	paginate_by = 5
+	template_name = 'blog/post/list.html'
+
 
 def post_list(request):
 	post_list = Post.published.all()
@@ -35,9 +44,23 @@ def post_detail(request, year, month, day, post):
 	return render(request, 'blog/post/detail.html', {'post': post})
 
 
-class PostListView(ListView):
-	queryset = Post.published.all()
-	context_object_name = 'posts'
-	paginate_by = 5
-	template_name = 'blog/post/list.html'
-
+def post_share(request, post_id):
+	# id로 글 검색
+	post = get_object_or_404(Post, id=post_id, status=Post.Status.PUBLISHED)
+	sent = False
+	if request.method == 'POST':
+		# 폼이 제출되었음
+		form = EmailPostForm(request.POST)
+		if form.is_valid():
+			# 폼 필드 유효한지 검사후
+			cd = form.cleaned_data
+			post_url = request.build_absolute_uri(post.get_absolute_url())
+			subject = f"{cd['name']} 님이 {post.title}을(를) 추천합니다."
+			message = f"{post.title}을(를) {post_url}에서 읽어보세요.\n\n" \
+					  f"{cd['name']}의 의견 : {cd['comments']}"
+			send_mail(subject, message, 'jklo0220@gmail.com', [cd['to']])
+			sent = False
+		return redirect('blog:post_list')
+	else:
+		form = EmailPostForm()
+	return render(request, 'blog/post/share.html', {'post': post, 'form': form, 'sent': sent})

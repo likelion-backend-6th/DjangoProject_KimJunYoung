@@ -59,8 +59,11 @@ def post_share(request, post_id):
 			message = f"{post.title}을(를) {post_url}에서 읽어보세요.\n\n" \
 					  f"{cd['name']}의 의견 : {cd['comments']}"
 			send_mail(subject, message, 'jklo0220@gmail.com', [cd['to']])
-			sent = False
-		return redirect('blog:post_list')
+
+			# sent = True
+		print(post.get_absolute_url())
+		return redirect(post.get_absolute_url())
 	else:
 		form = EmailPostForm()
 	return render(request, 'blog/post/share.html', {'post': post, 'form': form, 'sent': sent})
+

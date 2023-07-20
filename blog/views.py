@@ -3,6 +3,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView
+from taggit.models import Tag
 
 from .forms import EmailPostForm, CommentForm
 from .models import Post
@@ -17,8 +18,16 @@ class PostListView(ListView):
 	template_name = 'blog/post/list.html'
 
 
-def post_list(request):
+def post_list(request, tag_slug=None):
 	post_list = Post.published.all()
+
+	tag = None
+	# 테그 슬러그가 있는 경우
+	if tag_slug:
+		# Tag객체 가져옴
+		tag = get_object_or_404(Tag, slug=tag_slug)
+		post_list = post_list.filter(tags__in=[tag])
+
 	# 페이지당 3개의 게시물로
 	paginator = Paginator(post_list, 5)
 	page_number = request.GET.get('page', 1)
@@ -30,7 +39,8 @@ def post_list(request):
 	except PageNotAnInteger:
 		# page_number가 정수가 아닌 경우 첫번째 페이지 제공
 		posts = paginator.page(1)
-	return render(request, 'blog/post/list.html', {'posts': posts})
+
+	return render(request, 'blog/post/list.html', {'posts': posts, 'tag': tag})
 
 
 def post_detail(request, year, month, day, post):

@@ -42,7 +42,13 @@ def post_detail(request, year, month, day, post):
 		publish__month=month,
 		publish__day=day,
 	)
-	return render(request, 'blog/post/detail.html', {'post': post})
+	# 해당 포스트글에 대한 모든 활성 댓글들 가져오기 위한 쿼리셋 추가 related_name속성을 사용함
+	comments = post.comments.filter(active=True)
+	# 댓글폼 인스턴스 생성
+	form = CommentForm()
+	return render(request, 'blog/post/detail.html', {'post': post,
+													 'comments': comments,
+													 'form': form})
 
 
 def post_share(request, post_id):

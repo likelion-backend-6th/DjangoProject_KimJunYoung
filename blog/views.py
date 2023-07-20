@@ -81,7 +81,7 @@ def post_comment(request, post_id):
 		comment.save()
 	return render(
 		request,
-		'blog/post/comment.html',
+		'blog/post/includes/comment_form.html',
 		{'post': post,
 		 'form': form,
 		 'comment': comment

@@ -75,19 +75,22 @@ def post_share(request, post_id):
 	return render(request, 'blog/post/share.html', {'post': post, 'form': form, 'sent': sent})
 
 
-# 댓글 뷰
+# 댓글 뷰 (request POST 만 받음)
 @require_POST
 def post_comment(request, post_id):
 	post = get_object_or_404(Post, id=post_id, status=Post.Status.PUBLISHED)
 	comment = None
 	form = CommentForm(data=request.POST)
 	if form.is_valid():
+		# commit=False를 사용하면 db에 저장하지 않고 Comment객체를 생성함
 		comment = form.save(commit=False)
+		# 댓글에 게시물 할당
 		comment.post = post
+		# DB저장
 		comment.save()
 	return render(
 		request,
-		'blog/post/includes/comment_form.html',
+		'blog/post/comment.html',
 		{'post': post,
 		 'form': form,
 		 'comment': comment

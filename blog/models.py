@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import CASCADE
 from django.utils import timezone
 from django.urls import reverse
+from taggit.managers import TaggableManager
 
 
 # Create your models here.
@@ -27,6 +28,7 @@ class Post(models.Model):
 
 	objects = models.Manager()  # 디폴트 매니저
 	published = PublishedManager()  # 사용자 정의 매니저
+	tags = TaggableManager()  # 테그
 
 	class Meta:
 		ordering = ['-publish']

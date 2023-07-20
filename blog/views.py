@@ -17,6 +17,7 @@ class PostListView(ListView):
 	context_object_name = 'posts'
 	paginate_by = 5
 	template_name = 'blog/post/list.html'
+	ordering = '-created'
 
 
 def post_list(request, tag_slug=None):
@@ -54,15 +55,17 @@ def post_detail(request, year, month, day, post):
 		publish__day=day,
 	)
 	# 해당 포스트글에 대한 모든 활성 댓글들 가져오기 위한 쿼리셋 추가 related_name속성을 사용함
-	comments = post.comments.filter(active=True)
+	comments = post.comments.filter(active=True).order_by('-created')
 	# 댓글폼 인스턴스 생성
 	form = CommentForm()
 
 	# similar posts 리스트
 	post_tags_ids = post.tags.values_list('id', flat=True)
-	similar_posts = Post.published.filter(tags__in=post_tags_ids).exclude(id=post.id)
-	similar_posts = similar_posts.annotate(same_tags=Count('tags')).order_by('-same_tags', '-publish')[:4]
-
+	similar_posts = Post.published.filter(tags__in=post_tags_ids)\
+								  .exclude(id=post.id) \
+								  .annotate(same_tags=Count('tags')).order_by('-same_tags', '-publish')[:4]
+	# similar_posts = similar_posts.annotate(same_tags=Count('tags')).order_by('-same_tags', '-publish')[:4]
+	# 그냥 이어서 써도 됨
 
 	return render(request, 'blog/post/detail.html', {'post': post,
 													 'comments': comments,
